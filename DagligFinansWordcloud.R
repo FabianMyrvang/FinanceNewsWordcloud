@@ -59,7 +59,6 @@ finansavisenWords <-
                   x = finansavisen) %>% 
   as_tibble()
 
-#finansavisenWords <- finansavisenWords[-c(1:15),]
   
 # Create a udpipe dataframe of e24
 e24words <- udpipe_annotate(object = tagger,
@@ -87,24 +86,29 @@ terminology <- e24words %>%
   select("sentence_id", "lemma")
 
 
-# Combine e24 and finansavisen to dataframe
+# Combine all news journals to dataframe
 df <- rbind(finansavisenWords,
             e24words, 
             borsenDagbladetWords, 
             dagensNaringslivWords)
 
+
 # Select sentence_id and sentence
 sentences <- df %>% 
-  select("sentence") %>% 
+  select("doc_id","sentence_id","sentence") %>% 
   unique()
 
 
+# Selecting sentence_id and lemma
 term <- df %>% 
   filter(upos %in% c("NOUN","ADJ")) %>% 
   select("sentence_id","lemma")
 
+# Counting lemma
 term_count <- term %>% 
   count(term$lemma)
+
+# Arranging in descending order
 term_count %>% 
   arrange(-term_count$n) -> term_count
 
@@ -112,17 +116,18 @@ term_count %>%
 term_count %>% 
   filter(nchar(`term$lemma`) > 3) -> term_count
 
+
 require(RColorBrewer)
 require(wordcloud2)
 pal2 <- brewer.pal(6,"Dark2")
 
-
+# Daily wordcloud for 4 financial newsjournals in Norway
 wordcloud(words = term_count$`term$lemma`,
           freq = term_count$n,
-          min.freq = 1,
-          max.words = 80,
+          min.freq = 2,
+          max.words = 100,
           col= pal2,
-          scale = c(4,.25),
+          scale = c(3,.25),
           random.order = FALSE)
 
 
